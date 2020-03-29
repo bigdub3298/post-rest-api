@@ -1,3 +1,5 @@
+const path = require("path");
+
 const express = require("express");
 const bodyParser = require("body-parser");
 
@@ -10,6 +12,8 @@ const User = require("./models/user");
 const Post = require("./models/post");
 
 app.use(bodyParser.json());
+app.use("/images", express.static(path.join(__dirname, "images")));
+
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader(
@@ -34,7 +38,9 @@ app.use("/feed", feedRoutes);
 
 app.use((error, req, res, next) => {
   console.log(error);
-  res.status(error.httpStatusCode).json({ error: error.message });
+  const status = error.httpStatusCode || 500;
+  const message = error.message;
+  res.status(status).json({ message: message });
 });
 
 Post.belongsTo(User, { constraints: true, onDelete: "CASCADE" });
