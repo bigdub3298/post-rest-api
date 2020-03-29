@@ -128,7 +128,7 @@ class Feed extends Component {
           id: resData.post.id,
           title: resData.post.title,
           content: resData.post.content,
-          creator: resData.post.creator,
+          user: resData.post.user,
           createdAt: resData.post.createdAt
         };
         this.setState(prevState => {
@@ -244,7 +244,7 @@ class Feed extends Component {
                 <Post
                   key={post.id}
                   id={post.id}
-                  author={post.creator.name}
+                  author={post.user.name}
                   date={new Date(post.createdAt).toLocaleDateString("en-US")}
                   title={post.title}
                   image={post.imageUrl}

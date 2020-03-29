@@ -1,8 +1,9 @@
 const { validationResult } = require("express-validator");
 const Post = require("../models/post");
+const User = require("../models/user");
 
 exports.getPosts = (req, res, next) => {
-  Post.findAll()
+  Post.findAll({ order: [["id", "ASC"]], include: User })
     .then(posts => {
       res.status(200).json({
         posts
@@ -26,7 +27,8 @@ exports.createPost = (req, res, next) => {
 
   const { title, content } = req.body;
 
-  Post.create({ title, content, imageUrl: "temp" })
+  req.user
+    .createPost({ title, content, imageUrl: "temp" })
     .then(post => {
       if (!post) {
         throw new Error("Post creation failed");
@@ -35,10 +37,10 @@ exports.createPost = (req, res, next) => {
       res.status(201).json({
         messages: "Post creation successful.",
         post: {
-          id: 2,
+          id: post.id,
           title: post.title,
           content: post.content,
-          creator: { name: "Wesley" },
+          user: req.user,
           createdAt: post.createdAt
         }
       });
