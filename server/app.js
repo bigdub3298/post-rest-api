@@ -2,8 +2,7 @@ const path = require("path");
 
 const express = require("express");
 const bodyParser = require("body-parser");
-
-const app = express();
+const multer = require("multer");
 
 const feedRoutes = require("./routes/feed");
 
@@ -11,7 +10,28 @@ const sequelize = require("./database");
 const User = require("./models/user");
 const Post = require("./models/post");
 
+const app = express();
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "images");
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  }
+});
+
+const fileFilter = (req, file, cb) => {
+  const acceptedFileTypes = ["image/png", "image/jpg", "image/jpeg"];
+  if (acceptedFileTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(null, false);
+  }
+};
+
 app.use(bodyParser.json());
+app.use(multer({ storage: storage, fileFilter: fileFilter }).single("image"));
 app.use("/images", express.static(path.join(__dirname, "images")));
 
 app.use((req, res, next) => {
