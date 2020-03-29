@@ -4,6 +4,7 @@ const bodyParser = require("body-parser");
 const app = express();
 
 const feedRoutes = require("./routes/feed");
+const sequelize = require("./database");
 
 app.use(bodyParser.json());
 app.use((req, res, next) => {
@@ -23,4 +24,10 @@ app.use((error, req, res, next) => {
   res.status(error.httpStatusCode).json({ error: error.message });
 });
 
-app.listen(8080);
+sequelize
+  // .sync({ force: true })
+  .sync()
+  .then(result => {
+    app.listen(8080, () => console.log("Listening on port 8080"));
+  })
+  .catch(err => console.log(err));
