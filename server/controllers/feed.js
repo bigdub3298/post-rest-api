@@ -116,3 +116,29 @@ exports.updatePost = (req, res, next) => {
       next(err);
     });
 };
+
+exports.deletePost = (req, res, next) => {
+  const { id } = req.params;
+
+  req.user
+    .getPosts({ where: { id } })
+    .then(posts => {
+      if (posts.length === 0) {
+        const error = new Error("Post does not exist.");
+        error.httpStatusCode(404);
+        throw error;
+      }
+
+      const post = posts[0];
+      fileHelper.deleteFile(post.imageUrl);
+      return post.destroy();
+    })
+    .then(post => {
+      console.log(post);
+      res.status(200).json({ message: "Delete post successful." });
+    })
+    .catch(err => {
+      if (!err.httpStatusCode) err.httpStatusCode = 500;
+      next(err);
+    });
+};
