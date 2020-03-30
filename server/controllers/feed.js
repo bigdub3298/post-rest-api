@@ -4,11 +4,27 @@ const User = require("../models/user");
 const fileHelper = require("../util/file");
 
 exports.getPosts = (req, res, next) => {
-  Post.findAll({ order: [["id", "ASC"]], include: User })
+  const POSTS_PER_PAGE = 2;
+  const page = req.query.page || 1;
+  let totalPosts;
+
+  Post.count()
+    .then(count => {
+      totalPosts = count;
+
+      return Post.findAll({
+        offset: POSTS_PER_PAGE * (page - 1),
+        limit: POSTS_PER_PAGE,
+        order: [["id", "ASC"]],
+        include: User
+      });
+    })
     .then(posts => {
       res.status(200).json({
         message: "Fetch posts successful",
-        posts
+        posts,
+        postsPerPage: POSTS_PER_PAGE,
+        totalPosts
       });
     })
     .catch(err => {

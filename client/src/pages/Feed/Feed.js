@@ -17,6 +17,7 @@ class Feed extends Component {
     editPost: null,
     status: "",
     postPage: 1,
+    postsPerPage: 0,
     postsLoading: true,
     editLoading: false
   };
@@ -50,7 +51,7 @@ class Feed extends Component {
       page--;
       this.setState({ postPage: page });
     }
-    fetch("http://localhost:8080/feed/posts")
+    fetch(`http://localhost:8080/feed/posts?page=${page}`)
       .then(res => {
         if (res.status !== 200) {
           throw new Error("Failed to fetch posts.");
@@ -60,7 +61,8 @@ class Feed extends Component {
       .then(resData => {
         this.setState({
           posts: resData.posts,
-          totalPosts: resData.totalItems,
+          totalPosts: resData.totalPosts,
+          postsPerPage: resData.postsPerPage,
           postsLoading: false
         });
       })
@@ -244,7 +246,9 @@ class Feed extends Component {
             <Paginator
               onPrevious={this.loadPosts.bind(this, "previous")}
               onNext={this.loadPosts.bind(this, "next")}
-              lastPage={Math.ceil(this.state.totalPosts / 2)}
+              lastPage={Math.ceil(
+                this.state.totalPosts / this.state.postsPerPage
+              )}
               currentPage={this.state.postPage}
             >
               {this.state.posts.map(post => (
