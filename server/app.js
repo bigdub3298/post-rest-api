@@ -42,17 +42,7 @@ app.use((req, res, next) => {
     "GET, POST, PUT, PATCH, DELETE"
   );
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-
-  User.findByPk(1)
-    .then(user => {
-      req.user = user;
-      next();
-    })
-    .catch(err => {
-      const error = new Error(err);
-      error.httpStatusCode = 500;
-      next(error);
-    });
+  next();
 });
 
 app.use("/feed", feedRoutes);
@@ -71,18 +61,6 @@ User.hasMany(Post);
 sequelize
   // .sync({ force: true })
   .sync()
-  .then(_ => User.findByPk(1))
-  .then(user => {
-    if (!user) {
-      return User.create({
-        email: "test@test.com",
-        password: "test",
-        name: "Wesley Austin",
-        status: "temp"
-      });
-    }
-    return user;
-  })
   .then(_ => {
     app.listen(8080, () => console.log("Listening on port 8080"));
   })

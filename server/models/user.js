@@ -23,7 +23,7 @@ const User = sequelize.define("user", {
   },
   status: {
     type: Sequelize.STRING,
-    allowNull: false
+    defaultValue: "I am new!"
   }
 });
 

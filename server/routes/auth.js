@@ -38,4 +38,23 @@ router.post(
   authController.signUp
 );
 
+router.post(
+  "/login",
+  [
+    body("email")
+      .isEmail()
+      .withMessage("Please enter a valid email.")
+      .normalizeEmail()
+      .custom((value, { req }) => {
+        return User.findOne({ where: { email: value } }).then(user => {
+          if (!user) {
+            return Promise.reject("This email is not registered.");
+          }
+          req.user = user;
+        });
+      })
+  ],
+  authController.login
+);
+
 module.exports = router;
