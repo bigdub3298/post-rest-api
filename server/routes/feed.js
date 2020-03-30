@@ -9,10 +9,10 @@ router.get("/posts", feedController.getPosts);
 router.post(
   "/post",
   [
-    body("title")
+    body("title", "Title must be at least 5 characters")
       .trim()
       .isLength({ min: 5 }),
-    body("content")
+    body("content", "Title must be at least 5 characters")
       .trim()
       .isLength({ min: 5 })
   ],
@@ -24,10 +24,10 @@ router.get("/post/:id", feedController.getPost);
 router.put(
   "/post/:id",
   [
-    body("title")
+    body("title", "Title must be at least 5 characters")
       .trim()
       .isLength({ min: 5 }),
-    body("content")
+    body("content", "Title must be at least 5 characters")
       .trim()
       .isLength({ min: 5 })
   ],

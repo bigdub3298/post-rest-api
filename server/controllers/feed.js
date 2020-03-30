@@ -54,7 +54,8 @@ exports.getPost = (req, res, next) => {
 exports.createPost = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    const error = new Error("Create post validation failed.");
+    const error = new Error(errors.array()[0].msg);
+    error.data = errors.array();
     error.httpStatusCode = 422;
     throw error;
   }
@@ -95,7 +96,8 @@ exports.createPost = (req, res, next) => {
 exports.updatePost = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    const error = new Error("Create post validation failed.");
+    const error = new Error(errors.array()[0].msg);
+    error.data = errors.array();
     error.httpStatusCode = 422;
     throw error;
   }
