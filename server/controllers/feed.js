@@ -160,3 +160,39 @@ exports.deletePost = (req, res, next) => {
       next(err);
     });
 };
+
+exports.getUserStatus = (req, res, next) => {
+  res.status(200).json({ status: req.user.status });
+};
+
+exports.updateUserStatus = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    const error = new Error(errors.array()[0].msg);
+    error.data = errors.array();
+    error.httpStatusCode = 422;
+    throw error;
+  }
+  const { status } = req.body;
+
+  User.findByPk(req.user.id)
+    .then(user => {
+      if (!user) {
+        const error = new Error("User does not exist.");
+        error.httpStatusCode = 422;
+        throw error;
+      }
+
+      user.status = status;
+      return user.save();
+    })
+    .then(updatedUser => {
+      res
+        .status(200)
+        .json({ message: "User status update successful.", updatedUser });
+    })
+    .catch(err => {
+      if (!err.httpStatusCode) err.httpStatusCode = 500;
+      next(err);
+    });
+};
