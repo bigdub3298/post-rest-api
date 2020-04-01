@@ -1,4 +1,5 @@
 import React, { Component, Fragment } from "react";
+import openSocket from "socket.io-client";
 
 import Post from "../../components/Feed/Post/Post";
 import Button from "../../components/Button/Button";
@@ -40,7 +41,46 @@ class Feed extends Component {
       .catch(this.catchError);
 
     this.loadPosts();
+    const socket = openSocket("http://localhost:8080");
+    socket.on("posts", ({ action, ...payload }) => {
+      switch (action) {
+        case "create":
+          this.addPost(payload.post);
+          break;
+        case "update":
+          this.updatePost(payload.post);
+          break;
+        default:
+      }
+    });
   }
+
+  addPost = post => {
+    this.setState(prevState => {
+      const updatedPosts = [...prevState.posts];
+      if (prevState.postPage === 1) {
+        updatedPosts.pop();
+        updatedPosts.unshift(post);
+      }
+      return {
+        posts: updatedPosts,
+        totalPosts: prevState.totalPosts + 1
+      };
+    });
+  };
+
+  updatePost = post => {
+    this.setState(prevState => {
+      let updatedPosts = [...prevState.posts];
+      const postIndex = updatedPosts.findIndex(p => p.id === post.id);
+      if (postIndex > -1) {
+        updatedPosts[postIndex] = post;
+      }
+      return {
+        posts: updatedPosts
+      };
+    });
+  };
 
   loadPosts = direction => {
     if (direction) {
@@ -156,22 +196,10 @@ class Feed extends Component {
           user: resData.post.user,
           createdAt: resData.post.createdAt
         };
-        this.setState(prevState => {
-          let updatedPosts = [...prevState.posts];
-          if (prevState.editPost) {
-            const postIndex = prevState.posts.findIndex(
-              p => p.id === prevState.editPost.id
-            );
-            updatedPosts[postIndex] = post;
-          } else if (prevState.posts.length < 2) {
-            updatedPosts = prevState.posts.concat(post);
-          }
-          return {
-            posts: updatedPosts,
-            isEditing: false,
-            editPost: null,
-            editLoading: false
-          };
+        this.setState({
+          isEditing: false,
+          editPost: null,
+          editLoading: false
         });
       })
       .catch(err => {

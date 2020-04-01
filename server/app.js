@@ -1,5 +1,4 @@
 require("dotenv").config();
-
 const path = require("path");
 
 const express = require("express");
@@ -9,6 +8,7 @@ const feedRoutes = require("./routes/feed");
 const authRoutes = require("./routes/auth");
 const multer = require("./middleware/multer");
 const handleError = require("./middleware/error");
+const { initializeSocketIO } = require("./util/socket");
 
 const sequelize = require("./database");
 const User = require("./models/user");
@@ -46,7 +46,14 @@ const initializeExpress = () => {
     // .sync({ force: true })
     .sync()
     .then(_result => {
-      app.listen(8080, () => console.log("Listening on port 8080"));
+      const server = app.listen(8080, () =>
+        console.log("Listening on port 8080")
+      );
+
+      const io = initializeSocketIO(server);
+      io.on("connection", socket => {
+        console.log("a user connected!");
+      });
     })
     .catch(err => console.log(err));
 };

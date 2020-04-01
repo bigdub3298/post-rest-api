@@ -5,6 +5,7 @@ const {
   testForValidationErrors,
   testForFileError
 } = require("../util/validationError");
+const { getIO } = require("../util/socket");
 
 exports.getPosts = (req, res, next) => {
   const POSTS_PER_PAGE = 2;
@@ -67,16 +68,20 @@ exports.createPost = (req, res, next) => {
       if (!post) {
         throw new Error("Create post failed");
       }
+      const newPost = {
+        id: post.id,
+        title: post.title,
+        content: post.content,
+        user: req.user,
+        createdAt: post.createdAt
+      };
+
+      const io = getIO();
+      io.emit("posts", { action: "create", post: newPost });
 
       res.status(201).json({
         messages: "Create post successful.",
-        post: {
-          id: post.id,
-          title: post.title,
-          content: post.content,
-          user: req.user,
-          createdAt: post.createdAt
-        }
+        post: newPost
       });
     })
     .catch(err => {
@@ -97,7 +102,7 @@ exports.updatePost = (req, res, next) => {
     .then(posts => {
       if (posts.length === 0) {
         const error = new Error("Post does not exist.");
-        error.status(404);
+        error.httpStatusCode = 404;
         throw error;
       }
 
@@ -111,6 +116,9 @@ exports.updatePost = (req, res, next) => {
       return post.save();
     })
     .then(updatedPost => {
+      const io = getIO();
+      io.emit("posts", { action: "update", post: updatedPost });
+
       res
         .status(200)
         .json({ message: "Update post successful.", post: updatedPost });
