@@ -3,13 +3,13 @@ const router = express.Router();
 const { body } = require("express-validator");
 
 const feedController = require("../controllers/feed");
-const isAuth = require("../util/isAuth");
+const authenticate = require("../middleware/authenticate");
 
-router.get("/posts", isAuth, feedController.getPosts);
+router.get("/posts", authenticate, feedController.getPosts);
 
 router.post(
   "/post",
-  isAuth,
+  authenticate,
   [
     body("title", "Title must be at least 5 characters")
       .trim()
@@ -25,7 +25,7 @@ router.get("/post/:id", feedController.getPost);
 
 router.put(
   "/post/:id",
-  isAuth,
+  authenticate,
   [
     body("title", "Title must be at least 5 characters")
       .trim()
@@ -37,13 +37,13 @@ router.put(
   feedController.updatePost
 );
 
-router.delete("/post/:id", isAuth, feedController.deletePost);
+router.delete("/post/:id", authenticate, feedController.deletePost);
 
-router.get("/user-status", isAuth, feedController.getUserStatus);
+router.get("/user-status", authenticate, feedController.getUserStatus);
 
 router.post(
   "/user-status",
-  isAuth,
+  authenticate,
   [
     body("status", "Invalid status")
       .trim()

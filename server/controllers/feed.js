@@ -1,7 +1,10 @@
-const { validationResult } = require("express-validator");
 const Post = require("../models/post");
 const User = require("../models/user");
-const fileHelper = require("../util/file");
+const { deleteFile } = require("../util/file");
+const {
+  testForValidationErrors,
+  testForFileError
+} = require("../util/validationError");
 
 exports.getPosts = (req, res, next) => {
   const POSTS_PER_PAGE = 2;
@@ -52,19 +55,8 @@ exports.getPost = (req, res, next) => {
 };
 
 exports.createPost = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    const error = new Error(errors.array()[0].msg);
-    error.data = errors.array();
-    error.httpStatusCode = 422;
-    throw error;
-  }
-
-  if (!req.file) {
-    const error = new Error("No image provided.");
-    error.httpStatusCode = 422;
-    throw error;
-  }
+  testForValidationErrors(req);
+  testForFileError(req);
 
   const { title, content } = req.body;
   const imageUrl = req.file.path;
@@ -94,13 +86,7 @@ exports.createPost = (req, res, next) => {
 };
 
 exports.updatePost = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    const error = new Error(errors.array()[0].msg);
-    error.data = errors.array();
-    error.httpStatusCode = 422;
-    throw error;
-  }
+  testForValidationErrors(req);
 
   const { id } = req.params;
   const { title, content } = req.body;
@@ -119,7 +105,7 @@ exports.updatePost = (req, res, next) => {
       post.title = title;
       post.content = content;
       if (image) {
-        fileHelper.deleteFile(post.imageUrl);
+        deleteFile(post.imageUrl);
         post.imageUrl = image.path;
       }
       return post.save();
@@ -148,11 +134,10 @@ exports.deletePost = (req, res, next) => {
       }
 
       const post = posts[0];
-      fileHelper.deleteFile(post.imageUrl);
+      deleteFile(post.imageUrl);
       return post.destroy();
     })
-    .then(post => {
-      console.log(post);
+    .then(_post => {
       res.status(200).json({ message: "Delete post successful." });
     })
     .catch(err => {
@@ -161,18 +146,13 @@ exports.deletePost = (req, res, next) => {
     });
 };
 
-exports.getUserStatus = (req, res, next) => {
+exports.getUserStatus = (req, res, _next) => {
   res.status(200).json({ status: req.user.status });
 };
 
 exports.updateUserStatus = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    const error = new Error(errors.array()[0].msg);
-    error.data = errors.array();
-    error.httpStatusCode = 422;
-    throw error;
-  }
+  testForValidationErrors(req);
+
   const { status } = req.body;
 
   User.findByPk(req.user.id)

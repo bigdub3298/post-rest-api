@@ -1,19 +1,11 @@
-require("dotenv").config();
-
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const { validationResult } = require("express-validator");
 
 const User = require("../models/user");
+const { signToken } = require("../util/authToken");
+const { testForValidationErrors } = require("../util/validationError");
 
 exports.signUp = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    const error = new Error(errors.array()[0].msg);
-    error.data = errors.array();
-    error.httpStatusCode = 422;
-    throw error;
-  }
+  testForValidationErrors(req);
 
   const { email, password, name } = req.body;
 
@@ -41,12 +33,7 @@ exports.signUp = (req, res, next) => {
 };
 
 exports.login = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    const error = new Error(errors.array()[0].msg);
-    error.data = errors.array();
-    throw error;
-  }
+  testForValidationErrors(req);
 
   const { password } = req.body;
 
@@ -59,9 +46,8 @@ exports.login = (req, res, next) => {
         throw error;
       }
 
-      const token = jwt.sign(
+      const token = signToken(
         { email: req.user.email, userId: req.user.id },
-        process.env.SECRET,
         { expiresIn: "1h" }
       );
 
