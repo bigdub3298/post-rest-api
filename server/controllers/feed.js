@@ -19,7 +19,7 @@ exports.getPosts = (req, res, next) => {
       return Post.findAll({
         offset: POSTS_PER_PAGE * (page - 1),
         limit: POSTS_PER_PAGE,
-        order: [["id", "ASC"]],
+        order: [["createdAt", "DESC"]],
         include: User
       });
     })
@@ -137,11 +137,14 @@ exports.deletePost = (req, res, next) => {
     .then(posts => {
       if (posts.length === 0) {
         const error = new Error("Post does not exist.");
-        error.httpStatusCode(404);
+        error.httpStatusCode = 404;
         throw error;
       }
 
       const post = posts[0];
+      const io = getIO();
+      io.emit("posts", { action: "delete", post });
+
       deleteFile(post.imageUrl);
       return post.destroy();
     })
