@@ -50,6 +50,9 @@ class Feed extends Component {
         case "update":
           this.updatePost(payload.post);
           break;
+        case "delete":
+          this.deletePost(payload.post);
+          break;
         default:
       }
     });
@@ -59,7 +62,9 @@ class Feed extends Component {
     this.setState(prevState => {
       const updatedPosts = [...prevState.posts];
       if (prevState.postPage === 1) {
-        updatedPosts.pop();
+        if (updatedPosts.length > 1) {
+          updatedPosts.pop();
+        }
         updatedPosts.unshift(post);
       }
       return {
@@ -71,7 +76,7 @@ class Feed extends Component {
 
   updatePost = post => {
     this.setState(prevState => {
-      let updatedPosts = [...prevState.posts];
+      const updatedPosts = [...prevState.posts];
       const postIndex = updatedPosts.findIndex(p => p.id === post.id);
       if (postIndex > -1) {
         updatedPosts[postIndex] = post;
@@ -80,6 +85,16 @@ class Feed extends Component {
         posts: updatedPosts
       };
     });
+  };
+
+  deletePost = postToDelete => {
+    this.setState(prevState => {
+      const updatedPosts = prevState.posts.filter(
+        post => post.id !== postToDelete.id
+      );
+      return { posts: updatedPosts };
+    });
+    this.loadPosts();
   };
 
   loadPosts = direction => {
@@ -232,11 +247,7 @@ class Feed extends Component {
         return res.json();
       })
       .then(resData => {
-        console.log(resData);
-        this.setState(prevState => {
-          const updatedPosts = prevState.posts.filter(p => p.id !== postId);
-          return { posts: updatedPosts, postsLoading: false };
-        });
+        this.setState({ postsLoading: false });
       })
       .catch(err => {
         console.log(err);
